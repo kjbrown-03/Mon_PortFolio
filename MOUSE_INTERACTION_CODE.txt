@@ -1,0 +1,161 @@
+================================================================================
+DOCUMENTATION: CODE POUR CONTRÔLER LE BACKGROUND ET LES LETTRES AVEC LA SOURIS
+================================================================================
+
+📌 FICHIER: assets/js/script.js
+
+================================================================================
+PARTIE 1: CAPTURE DU MOUVEMENT DE LA SOURIS
+================================================================================
+Lignes: ~119-135
+
+// Variables to store mouse position (normalized -1 to 1)
+let mouseX = 0;
+let mouseY = 0;
+let targetRotationX = 0;
+let targetRotationY = 0;
+
+// Listen to mouse movement across the entire document
+document.addEventListener('mousemove', (event) => {
+  // Normalize mouse position to range [-1, 1]
+  mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+  mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+  
+  // Convert mouse position to rotation angles
+  // Multiply by Math.PI for rotation in radians
+  targetRotationY = mouseX * Math.PI * 0.5;  // Horizontal rotation
+  targetRotationX = mouseY * Math.PI * 0.3;  // Vertical rotation
+});
+
+EXPLICATION:
+- mouseX et mouseY stockent la position de la souris normalisée entre -1 et 1
+- event.clientX/Y donne la position en pixels
+- On divise par window.innerWidth/Height pour avoir une valeur entre 0 et 1
+- On multiplie par 2 et on soustrait 1 pour avoir une valeur entre -1 et 1
+- targetRotationX/Y convertit cette position en angles de rotation
+
+
+================================================================================
+PARTIE 2: APPLICATION DE LA SOURIS AUX LETTRES KJB
+================================================================================
+Lignes: ~203-210
+
+// Smoothly interpolate rotation based on mouse position
+group.rotation.y += (targetRotationY - group.rotation.y) * 0.05;
+group.rotation.x += (targetRotationX - group.rotation.x) * 0.05;
+group.rotation.y += 0.003; // Add constant rotation
+
+EXPLICATION:
+- group.rotation.y/x contrôle la rotation du groupe de lettres KJB
+- (targetRotation - currentRotation) * 0.05 crée une interpolation douce
+- Plus le facteur (0.05) est petit, plus le mouvement est fluide
+- 0.003 ajoute une rotation constante pour l'animation automatique
+
+
+================================================================================
+PARTIE 3: APPLICATION DE LA SOURIS AUX PARTICULES DE FOND
+================================================================================
+Lignes: ~224-249
+
+for (let i = 0; i < particlesCount; i++) {
+  const i3 = i * 3;
+  
+  // Create wave effect
+  const waveX = Math.sin(autoRotation + initialPositions[i3] * 0.05) * 2;
+  const waveY = Math.cos(autoRotation + initialPositions[i3 + 1] * 0.05) * 2;
+  
+  // Apply mouse influence (multiply mouseX/mouseY by a factor)
+  positionsArray[i3] = initialPositions[i3] + waveX + mouseX * 5;
+  positionsArray[i3 + 1] = initialPositions[i3 + 1] + waveY + mouseY * 5;
+  positionsArray[i3 + 2] = initialPositions[i3 + 2] + Math.sin(autoRotation + i * 0.1) * 2;
+  
+  // Second layer moves opposite direction
+  positions2Array[i3] = initialPositions2[i3] - waveX + mouseX * 8;
+  positions2Array[i3 + 1] = initialPositions2[i3 + 1] - waveY + mouseY * 8;
+  positions2Array[i3 + 2] = initialPositions2[i3 + 2] + Math.cos(autoRotation + i * 0.15) * 2;
+}
+
+// Update particle positions
+particles.geometry.attributes.position.needsUpdate = true;
+particles2.geometry.attributes.position.needsUpdate = true;
+
+// Rotate entire particle systems based on mouse
+particles.rotation.y = autoRotation * 0.3 + mouseX * 0.5;
+particles.rotation.x = autoRotation * 0.2 + mouseY * 0.3;
+particles2.rotation.y = -autoRotation * 0.2 - mouseX * 0.4;
+particles2.rotation.x = -autoRotation * 0.15 - mouseY * 0.25;
+
+EXPLICATION:
+- Chaque particule a 3 coordonnées (x, y, z) donc on utilise i * 3
+- mouseX * 5 et mouseY * 5 déplacent les particules selon la souris
+- Plus le multiplicateur est grand (5, 8), plus l'effet est prononcé
+- La deuxième couche utilise mouseX * 8 pour un effet plus fort
+- particles.rotation ajoute une rotation globale influencée par la souris
+
+
+================================================================================
+PARTIE 4: APPLICATION DE LA SOURIS AUX LUMIÈRES
+================================================================================
+Lignes: ~257-262
+
+// Lights follow mouse position
+pointLight1.position.x = Math.sin(autoRotation) * 15 + mouseX * 10;
+pointLight1.position.y = Math.cos(autoRotation) * 15 + mouseY * 10;
+pointLight2.position.x = Math.cos(autoRotation) * 15 - mouseX * 10;
+pointLight2.position.y = Math.sin(autoRotation) * 15 - mouseY * 10;
+
+EXPLICATION:
+- Math.sin/cos(autoRotation) * 15 fait tourner les lumières en cercle
+- + mouseX * 10 et + mouseY * 10 ajoutent l'influence de la souris
+- La deuxième lumière utilise - mouseX pour aller dans la direction opposée
+- Plus le multiplicateur (10) est grand, plus les lumières suivent la souris
+
+
+================================================================================
+COMMENT UTILISER CE CODE DANS D'AUTRES PROJETS
+================================================================================
+
+1. COPIER LA CAPTURE DE LA SOURIS (Partie 1):
+   - Crée les variables mouseX, mouseY
+   - Ajoute l'écouteur d'événement mousemove
+   - Normalise les coordonnées entre -1 et 1
+
+2. APPLIQUER AUX OBJETS 3D:
+   - Pour rotation: object.rotation.y += mouseX * facteur
+   - Pour position: object.position.x += mouseX * facteur
+   - Utilise l'interpolation (currentValue + (targetValue - currentValue) * 0.05) pour des mouvements fluides
+
+3. FACTEURS DE MULTIPLICATION:
+   - 0.3 à 0.5 pour rotations douces
+   - 5 à 10 pour déplacements moyens
+   - 10 à 20 pour effets dramatiques
+
+4. AJUSTER LA SENSIBILITÉ:
+   - Multiplie mouseX/mouseY par un nombre plus grand = plus sensible
+   - Multiplie par un nombre plus petit = moins sensible
+
+================================================================================
+EXEMPLE SIMPLE POUR DÉMARRER
+================================================================================
+
+// Capture de la souris
+let mouseX = 0, mouseY = 0;
+document.addEventListener('mousemove', (event) => {
+  mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+  mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+});
+
+// Dans ta boucle d'animation
+function animate() {
+  // Appliquer à un objet 3D
+  myObject.rotation.y += mouseX * 0.5;
+  myObject.rotation.x += mouseY * 0.3;
+  
+  // Appliquer aux particules
+  particles.rotation.y += mouseX * 0.2;
+  
+  renderer.render(scene, camera);
+  requestAnimationFrame(animate);
+}
+
+================================================================================

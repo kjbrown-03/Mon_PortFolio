@@ -64,7 +64,7 @@ const scriptedReplies = [
 ];
 
 const defaultReply =
-  "Je suis le chatbot je kaldjob jean baptiste que voulez vous savoir ?";
+  "Je suis le chatbot de kaldjob jean baptiste que voulez vous savoir ?";
 
 const createMessage = (text, type = "bot") => {
   const bubble = document.createElement("div");
@@ -135,11 +135,49 @@ window.synapseChatbot = {
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     // Page is ready
+    initializeModals();
+  });
+} else {
+  // DOM is already ready
+  initializeModals();
+}
+
+// Initialize modal functionality
+function initializeModals() {
+  // Add click event listeners to all showcase links
+  const showcaseLinks = document.querySelectorAll('[onclick^="openShowcase"]');
+  showcaseLinks.forEach(link => {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      const id = this.getAttribute('onclick').match(/\d+/)[0];
+      openShowcase(parseInt(id));
+    });
+  });
+  
+  // Add click event listeners to close buttons
+  const closeButtons = document.querySelectorAll('.close-showcase');
+  closeButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      const id = this.getAttribute('onclick').match(/\d+/)[0];
+      closeShowcase(parseInt(id));
+    });
+  });
+  
+  // Close modal when clicking outside
+  const modals = document.querySelectorAll('.showcase-modal');
+  modals.forEach(modal => {
+    modal.addEventListener('click', function(e) {
+      if (e.target === this) {
+        const id = this.id.replace('showcase', '');
+        closeShowcase(parseInt(id));
+      }
+    });
   });
 }
 
 // Showcase modal functions
 function openShowcase(id) {
+  console.log('Opening showcase:', id);
   const modal = document.getElementById('showcase' + id);
   if (modal) {
     modal.classList.add('active');
@@ -149,19 +187,33 @@ function openShowcase(id) {
     if (id === 2) {
       initShowcase2Background();
     }
+    
+    // Prevent background scrolling
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${window.scrollY}px`;
+  } else {
+    console.error('Modal not found for ID:', id);
   }
 }
 
 function closeShowcase(id) {
+  console.log('Closing showcase:', id);
   const modal = document.getElementById('showcase' + id);
   if (modal) {
     modal.classList.remove('active');
-    document.body.style.overflow = 'auto';
+    
+    // Restore background scrolling
+    const scrollY = document.body.style.top;
+    document.body.style.position = '';
+    document.body.style.top = '';
+    window.scrollTo(0, parseInt(scrollY || '0') * -1);
     
     // Clean up animated background for showcase 2
     if (id === 2) {
       stopShowcase2Background();
     }
+  } else {
+    console.error('Modal not found for ID:', id);
   }
 }
 
